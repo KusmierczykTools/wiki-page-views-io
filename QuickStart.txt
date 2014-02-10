@@ -1,0 +1,44 @@
+
+
+-----------------------------------------------------------------------------------------------------------------
+
+Source data:
+
+    The GZ files can be downloaded from:
+    http://dumps.wikimedia.org/other/pagecounts-raw/
+    (These files need to be fixed that there is exactly one file per hour.)
+
+    List of allowed wiki pages:
+    http://dumps.wikimedia.org/enwiki/20140102/enwiki-20140102-pages-articles-multistream-index.txt.bz2
+
+-----------------------------------------------------------------------------------------------------------------
+
+To prepare list of allowed wikipedia pages (in main_scripts directory):
+
+     wget http://dumps.wikimedia.org/enwiki/20140102/enwiki-20140102-pages-articles-multistream-index.txt.bz2
+     bzip2 -d enwiki-20140102-pages-articles-multistream-index.txt.bz2
+     cut -d ":" enwiki-20140102-pages-articles-multistream-index.txt -f 3 | python create_list_of_variants.py > /tmp/wikipedia_variants.txt
+
+-----------------------------------------------------------------------------------------------------------------
+
+To transform WikiPageViews gz archives to more readable form try this (in deploy directory):
+
+     ls DIRECTORY_WITH_GZ_FILES/*.gz > /tmp/list
+
+     sh wiki_pageviews_pack.sh /tmp/list /tmp/storage /tmp/wikipedia_variants.txt
+
+     sh wiki_pageviews_pack_finalize.sh /tmp/storage
+     #OR: sh wiki_pageviews_pack_finalize.sh /tmp/storage full 
+     #    (if you don't want anything in meta.txt file)
+
+    If you want to process only some part of entries 
+    (e.g. only entries with names starting with 'a')
+    you can remove some shards from list_of_shards.txt file.
+
+
+To edit cache length: files_processing.sh
+To edit number of shards: file_sharding.sh and list_of_shards.txt
+
+
+
+
