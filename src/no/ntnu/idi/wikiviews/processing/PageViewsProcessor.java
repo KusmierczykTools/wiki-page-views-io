@@ -8,6 +8,7 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import no.ntnu.idi.wikiviews.aux.CodeProfiler;
 import no.ntnu.idi.wikiviews.aux.StringFilter;
 import no.ntnu.idi.wikiviews.base.PageId;
 import no.ntnu.idi.wikiviews.base.PageDisplays;
@@ -90,19 +91,13 @@ public class PageViewsProcessor {
 	public long processSingleDataStream(InputStream inputStream) {
 		long startTime = System.currentTimeMillis();
 
-		Scanner input = new Scanner(inputStream);
-		int counter;
-		for (counter = 0; input.hasNextLine(); ++counter) {
+		Scanner input = new Scanner(inputStream);		
+		while(input.hasNextLine()) {
 			String line = input.nextLine();
 			processNextLine(cache, line);
+			CodeProfiler.getInstance().register("NewPage");
 		}
-		LOGGER.info(String.format("[STAT] %d processed in total", counter));
-		/*try {
-	        cache.print(System.out);
-        } catch (IOException e) {
-	        e.printStackTrace();
-        }*/
-		
+				
 		long estimatedTime = System.currentTimeMillis() - startTime;
 		return estimatedTime;
 	}
@@ -112,7 +107,7 @@ public class PageViewsProcessor {
 			Entry e = Entry.parseString(line);
 			storage.write(e.id, e.views);
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error in line=[" + line + "][ords: " + StringFilter.stringOrds(line)
+			LOGGER.log(Level.SEVERE, "[STAT] Error in line=[" + line + "][ords: " + StringFilter.stringOrds(line)
 			        + "] Exception:" + e.getMessage());
 			e.printStackTrace();
 		}

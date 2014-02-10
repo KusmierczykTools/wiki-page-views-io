@@ -1,7 +1,6 @@
 package no.ntnu.idi.wikiviews.aux;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,13 +19,18 @@ public class CodeProfiler {
 	
 	protected HashMap<String, Integer> operationToCount;
 	
-	public void register(String operationName) {		
-		Integer count = operationToCount.get(operationName);
-		if (count==null) {
-			operationToCount.put(operationName, 1);
+
+	public void register(String operationName, int count) {
+		Integer prevCount = operationToCount.get(operationName);
+		if (prevCount==null) {
+			operationToCount.put(operationName, count);
 		} else {
-			operationToCount.put(operationName, 1+count);
-		}		
+			operationToCount.put(operationName, count+prevCount);
+		}
+	}
+	
+	public void register(String operationName) {
+		this.register(operationName, 1);
 	}
 
 	
@@ -34,11 +38,22 @@ public class CodeProfiler {
 		LOGGER.info("[STAT] [CodeProfiler] Reset");
 		operationToCount.clear();
 	}
-	
-	public void printStats() {
-		for (Map.Entry<String, Integer> e: operationToCount.entrySet()) {
-			LOGGER.info("[STAT] [CodeProfiler] "+e.getKey()+": "+e.getValue()+" times executed");
+
+	public void printStats(String header, Iterable<String> keys) {
+		StringBuilder report = new StringBuilder();		
+		for (String key: keys) {
+			report.append(" ");
+			if (operationToCount.containsKey(key)) {
+				report.append(key+": "+operationToCount.get(key));
+			} else {
+				report.append(key +": 0");
+			}
 		}
+		LOGGER.info("[STAT] ["+header+"] time: "+GlobalTime.getInstance().getTime()+report.toString());
+	}
+	
+	public void printStats(String header) {
+		this.printStats(header, this.operationToCount.keySet());
 	}
 	
 	/************************************************************************/

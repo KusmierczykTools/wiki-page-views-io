@@ -3,6 +3,7 @@ package no.ntnu.idi.wikiviews.processing;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,6 +20,9 @@ public class WikiViewsProcessMany {
 
 	protected static final Logger LOGGER = Logger.getLogger(WikiViewsProcessMany.class.getName());
 
+	public static final List<String> PROFILER_REPORTING_VALUES = Arrays.asList("AddNewHistoryEntry", "FixGapWithZeros",
+			"DiskWrite", "AdjustWithZeros", "ProcessingTime", "NewPage");
+
 	public static void main(String args[]) throws IOException {
 
 		LOGGER.setLevel(Level.ALL);
@@ -34,7 +38,7 @@ public class WikiViewsProcessMany {
 		String storageDir = args[1];
 		int cacheHistoryLength = (args.length > 2) ? Integer.parseInt(args[2]) : 1000;
 		LOGGER.info(String.format("[STAT] listOfFilesPath=%s storage=%s cacheHistoryLength=%d", listOfFilesPath,
-		        storageDir, cacheHistoryLength));
+				storageDir, cacheHistoryLength));
 
 		/*********************************************************************/
 
@@ -42,7 +46,7 @@ public class WikiViewsProcessMany {
 			GlobalTime.getInstance().restoreTime(storageDir + java.io.File.separator + "time.txt");
 		} catch (FileNotFoundException e) {
 			LOGGER.warning("[STAT] File containing time info not found. Starting with time="
-			        + GlobalTime.getInstance().getTime());
+					+ GlobalTime.getInstance().getTime());
 		}
 		PageViewsProcessor processor = new PageViewsProcessor(storageDir, null, null, cacheHistoryLength);
 		long cacheLoadingTime = processor.startProcessing();
@@ -59,33 +63,35 @@ public class WikiViewsProcessMany {
 		CodeProfiler.getInstance().clear();
 		long cacheStoringTime = processor.finishProcessing();
 		GlobalTime.getInstance().storeTime(storageDir + java.io.File.separator + "time.txt");
-		CodeProfiler.getInstance().printStats();		
+		CodeProfiler.getInstance().printStats("Profiler", PROFILER_REPORTING_VALUES);
+		CodeProfiler.getInstance().printStats("ProfilerNonZero");
 
 		LOGGER.info(String.format(
-		        "[STAT] Done. Cache loading time:%dms, Processing of %d files time:%dms, Cache storing time:%dms",
-		        cacheLoadingTime, listOfInputFiles.size(), totalProcessingTime, cacheStoringTime));
+				"[STAT] Done. Cache loading time:%dms, Processing of %d files time:%dms, Cache storing time:%dms",
+				cacheLoadingTime, listOfInputFiles.size(), totalProcessingTime, cacheStoringTime));
 	}
 
 	private static long processNextFile(PageViewsProcessor processor, String inputFilePath)
-	        throws FileNotFoundException, IOException {
+			throws FileNotFoundException, IOException {
 		String[] parts = inputFilePath.split("-");
 		String date = parts[parts.length - 2];
 		String time = parts[parts.length - 1].split("\\.")[0];
 
 		LOGGER.info("---------------------------------------------------------------");
 		LOGGER.info("[STAT] Processing file: " + inputFilePath + " date=" + date + " time=" + time);
-
 		CodeProfiler.getInstance().clear();
+
 		processor.setDateTime(date, time);
 		GlobalTime.getInstance().increaseTime();
 		FileInputStream inputFileStream = new FileInputStream(inputFilePath);
 		long processingTime = processor.processSingleDataStream(inputFileStream);
 		inputFileStream.close();
-		CodeProfiler.getInstance().printStats();		
-		
+
+		CodeProfiler.getInstance().register("ProcessingTime", (int) processingTime);
+		CodeProfiler.getInstance().printStats("Profiler", PROFILER_REPORTING_VALUES);
+		CodeProfiler.getInstance().printStats("ProfilerNonZero");
 		LOGGER.info("[STAT] File: " + inputFilePath + " processed in " + processingTime + "ms");
 		LOGGER.info("---------------------------------------------------------------");
-
 
 		return processingTime;
 	}
