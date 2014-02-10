@@ -5,20 +5,22 @@
 TMPDIR="tmpshards"
 LISTOFSHARDS="list_of_shards.txt"
 
-echo "THE SCRIPTS UNPACKS GZ-FILES AND PACKS INTO STORAGE PAGEVIEWS OF WIKIDUMPS."
+echo "THE SCRIPT PACKS (UNPACKED) PAGEVIEWS OF WIKIDUMPS INTO STORAGE-FILES."
 echo "FOLLOWING ARGUMENTS ARE EXPECTED:"
-echo " FILE WITH LIST OF INPUT GZ FILES, STORAGE DIRECTORY, FILE WITH ALLOWED NAMES OF PAGES."
+echo " FILE WITH LIST OF INPUT FILES, STORAGE DIRECTORY."
 echo "ADDITIONAL LIST OF SHARDS TO BE PROCESSED IS READ FROM THE FILE: $LISTOFSHARDS"
+echo "WARNING: THERE IS ONE PROCESS PER SHARD CREATED SO BE CAREFUL WITH IT!"
+
 
 #verify arguments:
 if [ -z "$1" ]
   then
-    echo "FIRST ARGUMENT NEEDED: FILE WITH LIST OF INPUT GZ FILES "
+    echo "FIRST ARGUMENT NEEDED: FILE WITH LIST OF INPUT FILES "
     exit
 fi
 LISTFILE=$1
 LISTFILENAME=`basename $LISTFILE`
-echo "FILE WITH LIST OF INPUT GZ FILES: $LISTFILE"
+echo "[ARGUMENT] FILE WITH LIST OF INPUT FILES: $LISTFILE"
 
 if [ -z "$2" ]
   then
@@ -26,28 +28,15 @@ if [ -z "$2" ]
     exit
 fi
 STORAGE=$2
-echo "STORAGE DIRECTORY: $STORAGE"
-
-if [ -z "$3" ]
-  then
-    echo "THIRD ARGUMENT NEEDED: FILE WITH ALLOWED NAMES OF PAGES"
-    exit
-fi
-LEGALVALUES=$3
-echo "FILE WITH ALLOWED NAMES OF PAGES: $LEGALVALUES"
-
-
-#simple validation
-echo "VALIDATING LIST OF FILES"
-sh validate_sizes.sh $LISTFILE
-python validate_timeline2.py < $LISTFILE
+echo "[ARGUMENT] STORAGE DIRECTORY: $STORAGE"
 
 
 #create temporary directory for each of shards
 echo "CREATING TMP DIRECTORY FOR DATA SHARDS"
-mkdir $TMPDIR
+rm -rf $TMPDIR
+mkdir $TMPDIR 2> /dev/null
 for SHARD in `cat $LISTOFSHARDS`; do
-    mkdir "$TMPDIR/$SHARD"
+    mkdir "$TMPDIR/$SHARD" 2> /dev/null
 done
 
 
@@ -59,7 +48,7 @@ for FILE in `cat $LISTFILE | sort`; do
     echo "[$TIME]> SHARDING FILE=$FILE (NAME=$NAME)"
 
     #filter & split data among shard files
-    gunzip -c $FILE | sh file_filtering.sh $LEGALVALUES | sh file_sharding.sh
+    cat $FILE | sh file_sharding.sh
 
     #move each part of the file to proper shard directory 
     for SHARD in `cat $LISTOFSHARDS`; do
@@ -72,17 +61,17 @@ for FILE in `cat $LISTFILE | sort`; do
 done
 
 
-#process each shard in separate thread
+#process each shard in separate process
 echo "RUNNING PROCESSOR FOR EACH OF SHARDS:"
-mkdir $STORAGE
+mkdir $STORAGE 2> /dev/null
 for SHARD in `cat $LISTOFSHARDS`; do
     LOG="$STORAGE/$SHARD/load-$LISTFILENAME-$SHARD.log"
     TMPLIST="$TMPDIR/$SHARD.list"
     TIME=`date`
 
-    mkdir $STORAGE/$SHARD
+    mkdir $STORAGE/$SHARD 2> /dev/null
     ls $TMPDIR/$SHARD/*.txt | sort > $TMPLIST 
-    echo "[$TIME]> PROCESSING SHARD=$SHARD LIST=$TMPLIST STORAGE=$STORAGE/$SHARD LOG=$LOG"
+    echo "[$TIME]> PROCESSING SHARD = $SHARD  LIST = $TMPLIST  STORAGE = $STORAGE/$SHARD  LOG = $LOG"
     sh files_processing.sh $TMPLIST $STORAGE/$SHARD $4 2> $LOG &
 done
 
