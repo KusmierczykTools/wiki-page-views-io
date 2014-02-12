@@ -35,13 +35,14 @@ echo "[ARGUMENT] FILE WITH ALLOWED NAMES OF PAGES: $LEGALVALUES"
 
 #simple filtering
 echo "UNPACKING AND SIMPLE FILTERING OF FILES"
+rm -rf /tmp/preprocess_errors.log
 for FILE in `cat $LISTFILE | sort`; do
     NAME=`basename $FILE .gz`
     TIME=`date`
     echo "[$TIME]> $FILE =[SIMPLE-FILTERING]=> $STORAGE/$NAME.in"
 
     #filter & split data among shard files
-    gunzip -c $FILE | sh file_filtering.sh > $STORAGE/$NAME.in
+    gunzip -c $FILE | sh file_filtering.sh > $STORAGE/$NAME.in 2>> /tmp/preprocess_errors.log
 
     #TIME=`date`
     #echo "[$TIME]< $FILE =[SIMPLE-FILTERING]=> $STORAGE/$NAME.in"
@@ -51,7 +52,10 @@ done
 #filtering according to legal names
 echo "FILTERING FILES ACCORDING TO LIST OF LEGAL VALUES"
 ls $STORAGE/*.in > /tmp/temp_list_of_files
-sh files_filtering.sh $LEGALVALUES /tmp/temp_list_of_files
+sh files_filtering.sh $LEGALVALUES /tmp/temp_list_of_files 2>> /tmp/preprocess_errors.log
 rm $STORAGE/*.in
 
+echo "ERRORS:"
+cat /tmp/preprocess_errors.log
+echo "DONE."
 

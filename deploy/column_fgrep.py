@@ -12,6 +12,7 @@ def load_allowed(fin):
 def filter_lines(fin, fout, column_no, allowed=set()):
     kept = 0
     column_no -= 1
+    processed = -1
     for processed,original_line in enumerate(fin.xreadlines()):
         #if processed%100000==0: print kept,"kept out of",processed,"processed"
         line = original_line.lower().strip()

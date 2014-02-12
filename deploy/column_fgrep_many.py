@@ -6,8 +6,6 @@ from column_fgrep import *
 
 if __name__=="__main__":
 
-    sys.stdout = sys.stderr
-
     print "[column fgrep] The program reads lines from files and \
  keeps only these with column value present on the list of allowed values."
 
@@ -33,7 +31,12 @@ if __name__=="__main__":
         dst_path = ".".join(src_path.split(".")[:-1])+".out"
 
         print "[column fgrep] Processing:",src_path," -> ",dst_path        
-        kept,processed = filter_lines(open(src_path), open(dst_path, "w"), column_no, allowed)
+        kept,processed = filter_lines(open(src_path), open(dst_path, "w"), column_no, allowed)        
         print "[column fgrep]",kept,"kept out of",processed,"loaded"
         #print "[column fgrep] Done."
+
+        if processed < 1:
+            sys.stderr.write("[column fgrep] Error: file %s does not contain any legal value! \n" % src_path)
+
+
 
