@@ -50,7 +50,6 @@ public class PageViewsProcessor {
 	final private DiskStorage storage;
 	final private CacheStorage cache;
 
-	public static final String META_FILE_NAME = "meta.txt";
 
 	protected static final Logger LOGGER = Logger.getLogger(PageViewsProcessor.class.getName());
 	{
@@ -72,7 +71,7 @@ public class PageViewsProcessor {
 		long startTime = System.currentTimeMillis();
 		cache.fillTimeGapsWithZeros(); // adjust timeline
 		new File(storageDir).mkdirs();
-		cache.storeToFile(storageDir + java.io.File.separator + META_FILE_NAME);
+		cache.storeToFile(storageDir + java.io.File.separator + CacheStorage.META_FILE_NAME);
 		long estimatedTime = System.currentTimeMillis() - startTime;
 		return estimatedTime;
 	}
@@ -80,7 +79,7 @@ public class PageViewsProcessor {
 	public long startProcessing() {
 		long startTime = System.currentTimeMillis();
 		try {
-			cache.restoreFromFile(storageDir + java.io.File.separator + META_FILE_NAME);
+			cache.restoreFromFile(storageDir + java.io.File.separator + CacheStorage.META_FILE_NAME);
 		} catch (FileNotFoundException e) {
 			LOGGER.info("Storage cache not found! Staring with empty cache!");
 		}

@@ -11,6 +11,7 @@ import no.ntnu.idi.wikiviews.aux.AuxIO;
 import no.ntnu.idi.wikiviews.aux.CodeProfiler;
 import no.ntnu.idi.wikiviews.base.PageId;
 import no.ntnu.idi.wikiviews.base.PageDisplays;
+import no.ntnu.idi.wikiviews.base.PageMetadata;
 
 /**
  * @author tkusm
@@ -60,8 +61,8 @@ public class DiskStorage implements StorageReaderWriter {
 	public LinkedList<PageDisplays> read(PageId page) throws IOException {
 		String path = page.getPath(storagePath);
 		String line = AuxIO.readLine(path);
+		CodeProfiler.getInstance().register("DiskRead");
 		return PageDisplays.parseManyValuesString(line);
-
 	}
 
 	@Override
@@ -71,8 +72,14 @@ public class DiskStorage implements StorageReaderWriter {
 
 	@Override
 	public boolean contains(PageId page) {
-		String path = page.getPath(storagePath);		
+		String path = page.getPath(storagePath);	
+		CodeProfiler.getInstance().register("DiskContains");
 		return new File(path).exists();
+	}
+
+	@Override
+	public PageMetadata getPageMetadata(PageId page) {
+		throw new UnsupportedOperationException();
 	}
 
 }

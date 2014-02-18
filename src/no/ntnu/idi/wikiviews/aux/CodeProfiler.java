@@ -29,6 +29,10 @@ public class CodeProfiler {
 		}
 	}
 	
+	public void set(String operationName, int count) {
+		operationToCount.put(operationName, count);
+	}
+	
 	public void register(String operationName) {
 		this.register(operationName, 1);
 	}

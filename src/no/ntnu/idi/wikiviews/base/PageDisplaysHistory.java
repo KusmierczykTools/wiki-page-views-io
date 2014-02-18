@@ -43,7 +43,7 @@ public class PageDisplaysHistory {
 	}
 
 	public PageDisplaysHistory(PageId id, String startDate, String startTime, int previousAdditionTime,
-	        List<PageDisplays> history) {
+			List<PageDisplays> history) {
 		this.id = id;
 		this.startDate = startDate;
 		this.startTime = startTime;
@@ -58,7 +58,7 @@ public class PageDisplaysHistory {
 	public LinkedList<PageDisplays> getHistory() {
 		return history;
 	}
-	
+
 	public PageMetadata getMetadata() {
 		return new PageMetadata(id, startDate, startTime);
 	}
@@ -90,7 +90,7 @@ public class PageDisplaysHistory {
 
 			if (currentTime <= previousAdditionTime) {
 				throw new InconsistentTimeline("Previous addition time was:" + previousAdditionTime
-				        + " and current is:" + currentTime+" [id:"+id+"]");
+						+ " and current is:" + currentTime + " [id:" + id + "]");
 			}
 			int gap = currentTime - previousAdditionTime - 1;
 			if (gap > 0) {
@@ -131,17 +131,20 @@ public class PageDisplaysHistory {
 		return retrieved;
 	}
 
-	@Override
-	public String toString() {
+	public static String toString(List<PageDisplays> history) {
 		StringBuilder out = new StringBuilder();
-		out.append(id.project + " " + id.name + " " + startDate + " " + startTime + " " + previousAdditionTime);
-
 		for (PageDisplays v : history) {
 			out.append(" ");
 			out.append(v.toString());
 		}
-
 		return out.toString();
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder out = new StringBuilder();
+		out.append(id.project + " " + id.name + " " + startDate + " " + startTime + " " + previousAdditionTime);
+		return out.toString()+toString(history);
 	}
 
 	public static PageDisplaysHistory parseString(String line) {
@@ -153,7 +156,7 @@ public class PageDisplaysHistory {
 		int previousAdditionTime = Integer.parseInt(tokens[4].trim());
 
 		PageDisplaysHistory extracted = new PageDisplaysHistory(new PageId(project, name), date, time,
-		        previousAdditionTime);
+				previousAdditionTime);
 		// TODO should be replaced with PageDisplays.parseManyValuesString but I
 		// don't touch working things
 		for (int tokenNo = 5; tokenNo < tokens.length; ++tokenNo) {
@@ -167,6 +170,73 @@ public class PageDisplaysHistory {
 		}
 
 		return extracted;
+	}
+
+	/**
+	 * Converts list where displays are grouped (compressed with RLE) to list
+	 * where each views number is stored separately.
+	 * 
+	 * @param history
+	 * @return
+	 */
+	public static LinkedList<PageDisplays> unwrap(final List<PageDisplays> history) {
+		LinkedList<PageDisplays> unwrapped = new LinkedList<PageDisplays>();
+
+		for (PageDisplays p : history) {
+			for (int i = 0; i < p.getNumTimes(); ++i) {
+				unwrapped.add(new PageDisplays(p.getNumViews(), 1));
+			}
+		}
+
+		return unwrapped;
+	}
+
+	public static int unwrappedLength(final List<PageDisplays> history) {
+		int length = 0;
+		for (PageDisplays p : history) {
+			length += p.getNumTimes();
+		}
+		return length;
+	}
+
+	/**
+	 * Converts list where displays are stored separately to list where are
+	 * grouped (compressed with RLE).
+	 * 
+	 * @param history
+	 * @return
+	 */
+	public static LinkedList<PageDisplays> wrap(final List<PageDisplays> history) {
+		LinkedList<PageDisplays> wrapped = new LinkedList<PageDisplays>();
+
+		PageDisplays previous = null;
+		int numTimes = 0;
+		for (PageDisplays p : history) {
+			if (previous == null || previous.getNumViews() == p.getNumViews()) {
+				numTimes += p.getNumTimes();
+			} else {
+				wrapped.add(new PageDisplays(previous.getNumViews(), numTimes));
+				numTimes = p.getNumTimes();
+			}
+			previous = p;
+		}
+
+		if (numTimes > 0) {
+			wrapped.add(new PageDisplays(previous.getNumViews(), numTimes));
+		}
+
+		return wrapped;
+	}
+
+	public static boolean equals(List<PageDisplays> h1, List<PageDisplays> h2) {
+		if (h1 == null || h2 == null) {
+			return false;
+		}
+
+		h1 = wrap(h1);
+		h2 = wrap(h2);
+
+		return h1.equals(h2);
 	}
 
 }

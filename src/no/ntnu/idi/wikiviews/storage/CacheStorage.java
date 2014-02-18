@@ -25,6 +25,8 @@ public class CacheStorage implements StorageReaderWriter {
 		LOGGER.setLevel(Level.ALL);
 	}
 
+	public static final String META_FILE_NAME = "meta.txt";
+
 	private String date, time;
 
 	final private Map<PageId, PageDisplaysHistory> pageToHistory;
@@ -36,7 +38,7 @@ public class CacheStorage implements StorageReaderWriter {
 	 */
 	public CacheStorage(StorageReaderWriter underlyingStorage, int maxCacheLenghtPerPage, String date, String time) {
 		LOGGER.info("[STAT] Starting with date=" + date + " time=" + time + " maxHistoryLenghtPerPage="
-		        + maxCacheLenghtPerPage);
+				+ maxCacheLenghtPerPage);
 		this.date = date;
 		this.time = time;
 		this.pageToHistory = new TreeMap<PageId, PageDisplaysHistory>();
@@ -75,7 +77,7 @@ public class CacheStorage implements StorageReaderWriter {
 
 	public void flushExisting(String storageDir) throws IOException {
 		int flushed = 0;
-		for (PageId p : this.pageToHistory.keySet()) {			
+		for (PageId p : this.pageToHistory.keySet()) {
 			if (underlyingStorage.contains(p)) {
 				underlyingStorage.write(p, this.pageToHistory.get(p).retrieveAll());
 				++flushed;
@@ -133,6 +135,9 @@ public class CacheStorage implements StorageReaderWriter {
 				LOGGER.log(Level.WARNING, "Error: failed parsing line:" + line + " Exception:" + e.getMessage());
 				e.printStackTrace();
 			}
+			if (counter % 10000 == 0) { // progress bar
+				LOGGER.info(String.format("[restoreFromFile] %d loaded ", counter));
+			}
 		}
 		LOGGER.info(String.format("[STAT] %d loaded to cache in total", counter));
 	}
@@ -152,7 +157,7 @@ public class CacheStorage implements StorageReaderWriter {
 	 */
 	public void setTime(String time) {
 		this.time = time;
-		LOGGER.info("[STAT] time is now " + date);
+		LOGGER.info("[STAT] time is now " + time);
 	}
 
 	/**
@@ -171,12 +176,14 @@ public class CacheStorage implements StorageReaderWriter {
 
 	@Override
 	public List<PageDisplays> read(PageId page) throws IOException {
+		CodeProfiler.getInstance().register("CacheRead");
+
 		if (!pageToHistory.containsKey(page)) {
-			throw new IOException(page.toString()+" is not stored in the storage!");
+			throw new IOException(page.toString() + " is not stored in the storage!");
 		}
-		
+
 		if (underlyingStorage.contains(page)) { // we need to consider part
-			                                    // from the disk
+												// from the disk
 			if (pageToHistory.get(page).getHistory().size() <= 0) {
 				// everything is on the this and nothing in the memory
 				return underlyingStorage.read(page);
@@ -197,18 +204,20 @@ public class CacheStorage implements StorageReaderWriter {
 	public Set<PageId> getKeys() {
 		return this.pageToHistory.keySet();
 	}
-	
-	public void print(OutputStream o) throws IOException {		
-		for (PageDisplaysHistory h: this.pageToHistory.values()) {
-			o.write( (h.toString()+"\n").getBytes(Charset.forName("UTF-8")) );			
+
+	public void print(OutputStream o) throws IOException {
+		for (PageDisplaysHistory h : this.pageToHistory.values()) {
+			o.write((h.toString() + "\n").getBytes(Charset.forName("UTF-8")));
 		}
 	}
 
 	@Override
 	public boolean contains(PageId page) {
+		CodeProfiler.getInstance().register("CacheContains");
 		return this.pageToHistory.containsKey(page);
 	}
 
+	@Override
 	public PageMetadata getPageMetadata(PageId page) {
 		return pageToHistory.get(page).getMetadata();
 	}

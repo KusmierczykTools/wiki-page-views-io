@@ -9,6 +9,7 @@ import java.util.Set;
 
 import no.ntnu.idi.wikiviews.base.PageDisplays;
 import no.ntnu.idi.wikiviews.base.PageId;
+import no.ntnu.idi.wikiviews.base.PageMetadata;
 
 
 /**
@@ -39,4 +40,12 @@ public interface StorageReader {
 	 * @return true if page is in the set of known pages, false otherwise
 	 */
 	public boolean contains(PageId page);
+	
+	/**
+	 * Returns additional information about stored page.
+	 * 
+	 * @param page page to be described
+	 * @return additional description
+	 */
+	public PageMetadata getPageMetadata(PageId page);
 }
