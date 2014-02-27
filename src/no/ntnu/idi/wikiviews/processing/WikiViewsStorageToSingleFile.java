@@ -1,6 +1,5 @@
 package no.ntnu.idi.wikiviews.processing;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
@@ -11,17 +10,16 @@ import java.util.logging.Logger;
 import no.ntnu.idi.wikiviews.aux.CodeProfiler;
 import no.ntnu.idi.wikiviews.aux.GlobalTime;
 import no.ntnu.idi.wikiviews.aux.IntervalDate;
+import no.ntnu.idi.wikiviews.aux.Sharding;
 import no.ntnu.idi.wikiviews.base.PageDisplays;
 import no.ntnu.idi.wikiviews.base.PageDisplaysHistory;
 import no.ntnu.idi.wikiviews.base.PageId;
 import no.ntnu.idi.wikiviews.base.PageMetadata;
 import no.ntnu.idi.wikiviews.exceptions.BadDateTimeFormat;
-import no.ntnu.idi.wikiviews.storage.CacheStorage;
-import no.ntnu.idi.wikiviews.storage.DiskStorage;
+import no.ntnu.idi.wikiviews.storage.ShardedStorageReader;
 import no.ntnu.idi.wikiviews.storage.SingleFileStorage;
-import no.ntnu.idi.wikiviews.storage.StorageReader;
 
-public class WikiViewsShardedStorageToSingleFile {
+public class WikiViewsStorageToSingleFile {
 
 	protected static final Logger LOGGER = Logger.getLogger(PageDisplaysHistory.class.getName());
 	static {
@@ -29,29 +27,22 @@ public class WikiViewsShardedStorageToSingleFile {
 	}
 
 	public static void main(String args[]) throws BadDateTimeFormat, ParseException, IOException {
-		LOGGER.info("The program reads from sharded storage and writes to single output file.");
+		LOGGER.info("The program reads from storage and writes to single output file.");
 		final String baseDir, outPath;
+		final int numShards;
 		try {
 			baseDir = args[0];
 			outPath = args[1];
+			numShards = Sharding.DEFAULT_NUM_SHARDS;
 		} catch (Exception e) {
-			LOGGER.severe("Failed parsing arguments! Arguments expected: storage directory (containing "
-					+ CacheStorage.META_FILE_NAME + " file) and output file path.");
+			LOGGER.severe("Failed parsing arguments! Arguments expected: sharded storage directory and output file path.");
 			System.exit(-1);
 			return;
 		}
-		LOGGER.info("baseDir = " + baseDir);
+		LOGGER.info("baseDir = " + baseDir + " numShards = " + numShards);
 
 		SingleFileStorage out = new SingleFileStorage(outPath);
-
-		DiskStorage disk = new DiskStorage(baseDir, null, null);
-		CacheStorage reader = new CacheStorage(disk, Integer.MAX_VALUE, null, null);
-		try {
-			reader.restoreFromFile(baseDir + java.io.File.separator + CacheStorage.META_FILE_NAME);
-		} catch (FileNotFoundException e) {
-			LOGGER.severe("Error: Failure while restoring cache: " + e.getMessage());
-		}
-
+		ShardedStorageReader reader = new ShardedStorageReader(baseDir, numShards);
 		Set<PageId> pages = reader.getKeys();
 		LOGGER.info(pages.size() + " keys read");
 
@@ -91,21 +82,21 @@ public class WikiViewsShardedStorageToSingleFile {
 			}
 
 			counter++;
-			if (counter % 100000 == 0) {
+			if (counter % 10000 == 0) {
 				CodeProfiler.getInstance().set("ValidEntries", validCounter);
 				CodeProfiler.getInstance().set("Failures", failuresCounter);
 				CodeProfiler.getInstance().printStats("StorageValidation");
 			}
 		}
-
+		
 		CodeProfiler.getInstance().set("ValidEntries", validCounter);
 		CodeProfiler.getInstance().set("Failures", failuresCounter);
 		CodeProfiler.getInstance().printStats("StorageValidation");
 		out.close();
-
+		
 	}
 
-	private static long extractTimelineEndMsec(StorageReader reader, PageId id) throws BadDateTimeFormat,
+	private static long extractTimelineEndMsec(ShardedStorageReader reader, PageId id) throws BadDateTimeFormat,
 			ParseException, IOException {
 		PageMetadata meta = reader.getPageMetadata(id);
 		IntervalDate firstStartDate = GlobalTime.parseDate(meta.getStartDate(), meta.getStartTime());
