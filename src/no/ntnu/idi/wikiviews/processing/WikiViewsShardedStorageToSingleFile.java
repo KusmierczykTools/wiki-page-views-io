@@ -88,12 +88,12 @@ public class WikiViewsShardedStorageToSingleFile {
 				CodeProfiler.getInstance().printStats("StorageValidation");
 			}
 		}
-
+		
 		CodeProfiler.getInstance().set("ValidEntries", validCounter);
 		CodeProfiler.getInstance().set("Failures", failuresCounter);
 		CodeProfiler.getInstance().printStats("StorageValidation");
 		out.close();
-
+		
 	}
 
 	private static long extractTimelineEndMsec(ShardedStorageReader reader, PageId id) throws BadDateTimeFormat,
