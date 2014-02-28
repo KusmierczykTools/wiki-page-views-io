@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 import no.ntnu.idi.wikiviews.aux.CodeProfiler;
 import no.ntnu.idi.wikiviews.base.*;
 
-public class SingleFileStorage {
+public class SingleFileStorageWriter {
 
 	final private static Logger LOGGER = Logger.getLogger(CacheStorage.class.getName());
 	static {
@@ -19,15 +19,15 @@ public class SingleFileStorage {
 
 	final BufferedWriter out;
 
-	public SingleFileStorage(String path) throws IOException {
+	public SingleFileStorageWriter(String path) throws IOException {
 		out = new BufferedWriter(new FileWriter(path));
 	}
 
-	public SingleFileStorage(FileWriter f) {
+	public SingleFileStorageWriter(FileWriter f) {
 		out = new BufferedWriter(f);
 	}
 
-	public SingleFileStorage(BufferedWriter f) {
+	public SingleFileStorageWriter(BufferedWriter f) {
 		out = f;
 	}
 

@@ -106,6 +106,7 @@ public class WikiViewsShardedStorageVerify {
 		 * LOGGER.info("timeEndingMsec = " + timeEndingMsec + " timeEnding = " +
 		 * (new IntervalDate(timeEndingMsec)));
 		 */
+		LOGGER.info("Timeline end = "+new IntervalDate(timeEndingMsec));
 		return timeEndingMsec;
 	}
 }

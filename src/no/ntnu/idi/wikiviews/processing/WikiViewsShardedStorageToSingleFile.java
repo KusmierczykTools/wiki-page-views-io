@@ -17,7 +17,7 @@ import no.ntnu.idi.wikiviews.base.PageId;
 import no.ntnu.idi.wikiviews.base.PageMetadata;
 import no.ntnu.idi.wikiviews.exceptions.BadDateTimeFormat;
 import no.ntnu.idi.wikiviews.storage.ShardedStorageReader;
-import no.ntnu.idi.wikiviews.storage.SingleFileStorage;
+import no.ntnu.idi.wikiviews.storage.SingleFileStorageWriter;
 
 public class WikiViewsShardedStorageToSingleFile {
 
@@ -41,7 +41,7 @@ public class WikiViewsShardedStorageToSingleFile {
 		}
 		LOGGER.info("baseDir = " + baseDir + " numShards = " + numShards);
 
-		SingleFileStorage out = new SingleFileStorage(outPath);
+		SingleFileStorageWriter out = new SingleFileStorageWriter(outPath);
 		ShardedStorageReader reader = new ShardedStorageReader(baseDir, numShards);
 		Set<PageId> pages = reader.getKeys();
 		LOGGER.info(pages.size() + " keys read");
@@ -102,6 +102,7 @@ public class WikiViewsShardedStorageToSingleFile {
 		IntervalDate firstStartDate = GlobalTime.parseDate(meta.getStartDate(), meta.getStartTime());
 		List<PageDisplays> history = reader.read(id);
 		long timeEndingMsec = firstStartDate.getTime() + PageDisplaysHistory.unwrappedLength(history) * 3600000L;
+		LOGGER.info("Timeline end = "+new IntervalDate(timeEndingMsec));
 		return timeEndingMsec;
 	}
 }

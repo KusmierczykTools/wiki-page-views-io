@@ -18,7 +18,7 @@ import no.ntnu.idi.wikiviews.base.PageMetadata;
 import no.ntnu.idi.wikiviews.exceptions.BadDateTimeFormat;
 import no.ntnu.idi.wikiviews.storage.CacheStorage;
 import no.ntnu.idi.wikiviews.storage.DiskStorage;
-import no.ntnu.idi.wikiviews.storage.SingleFileStorage;
+import no.ntnu.idi.wikiviews.storage.SingleFileStorageWriter;
 import no.ntnu.idi.wikiviews.storage.StorageReader;
 
 public class WikiViewsStorageToSingleFile {
@@ -42,7 +42,7 @@ public class WikiViewsStorageToSingleFile {
 		LOGGER.info("baseDir = " + baseDir);
 
 
-		SingleFileStorage out = new SingleFileStorage(outPath);
+		SingleFileStorageWriter out = new SingleFileStorageWriter(outPath);
 		DiskStorage disk = new DiskStorage(baseDir, null, null);
 		CacheStorage reader = new CacheStorage(disk, Integer.MAX_VALUE, null, null);
 		try {
@@ -110,6 +110,7 @@ public class WikiViewsStorageToSingleFile {
 		IntervalDate firstStartDate = GlobalTime.parseDate(meta.getStartDate(), meta.getStartTime());
 		List<PageDisplays> history = reader.read(id);
 		long timeEndingMsec = firstStartDate.getTime() + PageDisplaysHistory.unwrappedLength(history) * 3600000L;
+		LOGGER.info("Timeline end = "+new IntervalDate(timeEndingMsec));
 		return timeEndingMsec;
 	}
 }

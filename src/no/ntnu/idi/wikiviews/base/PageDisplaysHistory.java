@@ -146,6 +146,12 @@ public class PageDisplaysHistory {
 		out.append(id.project + " " + id.name + " " + startDate + " " + startTime + " " + previousAdditionTime);
 		return out.toString()+toString(history);
 	}
+	
+	public String toUnwrappedString() {
+		StringBuilder out = new StringBuilder();
+		out.append(id.project + " " + id.name + " " + startDate + " " + startTime + " " + previousAdditionTime);
+		return out.toString()+toString(PageDisplaysHistory.unwrap(history));
+	}
 
 	public static PageDisplaysHistory parseString(String line) {
 		String[] tokens = line.split(" ");
