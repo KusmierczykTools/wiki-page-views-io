@@ -8,12 +8,12 @@ The project is devoted to support Wikipedia page view statistics dumps IO
 
 Source data:
 
-    The GZ files can be downloaded from:
+The GZ files can be downloaded from:
     http://dumps.wikimedia.org/other/pagecounts-raw/    
-    You can use: `sh deploy/wiki_pageviews_download.sh YEAR MONTH` for that.
-    WARNING: These files need to be manualy fixed that there is exactly one file per hour.
+You can use: `sh deploy/wiki_pageviews_download.sh YEAR MONTH` for that.
+WARNING: These files need to be manualy fixed that there is exactly one file per hour.
 
-    List of allowed wiki pages can be downloaded from:
+List of allowed wiki pages can be downloaded from:
     http://dumps.wikimedia.org/enwiki/20140102/enwiki-20140102-pages-articles-multistream-index.txt.bz2
 
 -----------------------------------------------------------------------------------------------------------------
@@ -95,6 +95,19 @@ Single line describes single page. Every line contain list of fields separated w
  
 -----------------------------------------------------------------------------------------------------------------
 
+To validate consistency of sharded storage run (Warning: Huge memory is needed!):
+
+    java -jar bin/WikiViewsShardedStorageVerify.jar SHARDED-STORAGE-DIR-PATH
+
+
+To pack whole storage into single text file (the same format as in meta.txt files) run:
+
+    java -jar bin/WikiViewsStorageToSingleFile.jar SHARDED-STORAGE-DIR-PATH OUTPUT-TEXT-FILE-PATH
+
+
+To pack single (e.g. single shard) storage into single text file (the same format as in meta.txt files) run:
+
+    java -jar bin/WikiViewsStorageToSingleFile.jar STORAGE-DIR-PATH OUTPUT-TEXT-FILE-PATH
 
 
 
