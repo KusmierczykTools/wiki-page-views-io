@@ -71,7 +71,7 @@ public class WikiViewsStorageToSingleFileAdHoc {
 				long startTime = GlobalTime.parseDate(meta.getStartDate(), meta.getStartTime()).getTime();
 				long thisEndingMsec = startTime + PageDisplaysHistory.unwrappedLength(history) * 3600000L;
 
-				if (thisEndingMsec != timelineEndingMsec) {
+				if (timelineEndingMsec>0 && thisEndingMsec != timelineEndingMsec) {
 					List<PageDisplays> unwrapHistory = PageDisplaysHistory.unwrap(history);
 					LOGGER.severe("[ERROR] Wrong timeline for: page = " + meta + " history.size() = " + history.size()
 							+ " history => " + PageDisplaysHistory.toString(history) + " UnwrappedLength = "
@@ -84,6 +84,7 @@ public class WikiViewsStorageToSingleFileAdHoc {
 					failuresCounter++;
 				} else {
 					out.store(meta, history);
+					timelineEndingMsec = thisEndingMsec;
 					validCounter++;
 				}
 
