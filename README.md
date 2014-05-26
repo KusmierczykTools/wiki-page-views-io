@@ -99,14 +99,13 @@ To validate consistency of sharded storage run (Warning: Huge memory is needed!)
 
     java -jar bin/WikiViewsShardedStorageVerify.jar SHARDED-STORAGE-DIR-PATH
 
-
 To pack whole storage into single text file (the same format as in meta.txt files) run:
 
+    sh wiki_sharded_storage_export.sh SHARDED-STORAGE-DIR-PATH OUTPUT-TEXT-FILE-PATH
+
+Eventually you can also try (not adviced):
+
     java -jar bin/WikiViewsStorageToSingleFile.jar SHARDED-STORAGE-DIR-PATH OUTPUT-TEXT-FILE-PATH
-
-
-To pack single (e.g. single shard) storage into single text file (the same format as in meta.txt files) run:
-
     java -jar bin/WikiViewsStorageToSingleFile.jar STORAGE-DIR-PATH OUTPUT-TEXT-FILE-PATH
 
 

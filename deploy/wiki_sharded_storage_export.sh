@@ -16,7 +16,7 @@ for FILE in `ls -d $1/*/`; do
     OUTPUT=$1/$BASEDIR-$BASENAME.txt
     LOG=$1/$BASEDIR-$BASENAME.log
     echo "RUNNING FOR $FILE. OUTPUT=$OUTPUT LOG=$LOG"
-    java -jar bin/WikiViewsStorageToSingleFile.jar $FILE $OUTPUT 2> $LOG &
+    java -jar bin/WikiViewsStorageToSingleFileAdHoc.jar $FILE $OUTPUT 2> $LOG &
 done
 
 wait
