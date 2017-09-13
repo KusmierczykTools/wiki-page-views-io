@@ -1,25 +1,25 @@
-wiki-page-views-io
-==================
+Code to prepare data used in the following paper:
 
-The project is devoted to support Wikipedia page view statistics dumps IO 
-(http://dumps.wikimedia.org/other/pagecounts-raw/). 
+**T. Kusmierczyk, K. Nørvåg: Mining Correlations on Massive Bursty Time Series Collections. DASFAA 2015.**
 
 -----------------------------------------------------------------------------------------------------------------
 
-Source data:
+### Source files
 
-The GZ files can be downloaded from:
-    http://dumps.wikimedia.org/other/pagecounts-raw/    
-You can use: `sh deploy/wiki_pageviews_download.sh YEAR MONTH` for that.
+Wikipedia page view statistics dumps files can be downloaded from     http://dumps.wikimedia.org/other/pagecounts-raw/    
+
+For example, you can use: `sh deploy/wiki_pageviews_download.sh YEAR MONTH`
+
 WARNING: These files need to be manualy fixed that there is exactly one file per hour.
 
-List of allowed wiki pages can be downloaded from:
-    http://dumps.wikimedia.org/enwiki/20140102/enwiki-20140102-pages-articles-multistream-index.txt.bz2
+List of wiki pages used to prefilter entries can be downloaded from:
+http://dumps.wikimedia.org/enwiki/20140102/enwiki-20140102-pages-articles-multistream-index.txt.bz2
 
 -----------------------------------------------------------------------------------------------------------------
 
-To prepare list of allowed wikipedia pages (should be done in deploy directory):
+To prepare list of allowed wikipedia pages execute:
 
+	 cd deploy
      wget http://dumps.wikimedia.org/enwiki/20140102/enwiki-20140102-pages-articles-multistream-index.txt.bz2
      bzip2 -d enwiki-20140102-pages-articles-multistream-index.txt.bz2
      cut -d ":" enwiki-20140102-pages-articles-multistream-index.txt -f 3 | python create_list_of_variants.py > /tmp/wikipedia_variants.txt
@@ -27,28 +27,29 @@ To prepare list of allowed wikipedia pages (should be done in deploy directory):
 The script above unpacks and expands list of page names in a way that each possible variant is included.
 
 -----------------------------------------------------------------------------------------------------------------
+### Preprocessing
 
 To transform WikiPageViews gz archives to more readable form we first need a list of files:
 
     cd deploy
     ls DIRECTORY_WITH_GZ_FILES/*.gz > /tmp/list
 
-To validate (size and dates) list of files:
+Validate (size and dates) list of files:
 
     sh wiki_pageviews_validation.sh /tmp/list
 
-To preprocess files:
+Preprocess files:
 
     sh wiki_pageviews_preprocess.sh /tmp/list /tmp/temporal_storage /tmp/wikipedia_variants.txt
 
-To transform and pack files into storage:
+Transform and pack files into storage:
 
     ls /tmp/temporal_storage/*out > /tmp/list
     sh wiki_pageviews_pack.sh  /tmp/list OUTPUT-STORAGE-PATH
 
 All above steps can be run on as many SUBSEQUENT list as you wish e.g. you can create separate list for each year
 and run one after the other.
-At the end you should run:
+At the end run:
 
     sh wiki_pageviews_pack_finalize.sh OUTPUT-STORAGE-PATH
     #OR: sh wiki_pageviews_pack_finalize.sh OUTPUT-STORAGE-PATH full 
@@ -67,7 +68,7 @@ To edit number of shards: file_sharding.sh and list_of_shards.txt
 
 -----------------------------------------------------------------------------------------------------------------
 
-Data storage description:
+### Data storage description
 
 Single storage contains file meta.txt and set of directories. 
 Directories names are formatted according to project_prefix2 
@@ -95,7 +96,7 @@ Single line describes single page. Every line contain list of fields separated w
  
 -----------------------------------------------------------------------------------------------------------------
 
-To validate consistency of sharded storage run (Warning: Huge memory is needed!):
+To validate consistency of sharded storage run (Warning: Large memory space usage!):
 
     java -jar bin/WikiViewsShardedStorageVerify.jar SHARDED-STORAGE-DIR-PATH
 
